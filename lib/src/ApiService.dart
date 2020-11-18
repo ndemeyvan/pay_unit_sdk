@@ -1,11 +1,9 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:math';
 import 'blocs/PayUnitStream.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:http/http.dart' as http;
 import 'package:http_auth/http_auth.dart' as http_auth;
-import 'package:intl/intl.dart';
 import 'package:native_progress_hud/native_progress_hud.dart';
 import './Constant/Constant.dart'as constant;
 
@@ -149,17 +147,9 @@ class ApiService {
             closeDialog(context);
             _timer.cancel();
             payUnitStream.paymentSink.addError("error");
-            constant.succesPaymentDialog("Payment success", context, "Thank using Payunit payment", actionAfterProccess);
           }
         }
       });
-
-
-
-
-
-
-
     } catch (e) {
       print(" catch error /providers : ${e}");
       closeDialog(context);
@@ -169,7 +159,6 @@ class ApiService {
   }
 
   /// [context] : the actual context of the app
-  /// [transactionId] : the amount of the bill
   /// [transactionAmount] : the amount you want to pay
   /// [transactionCallBackUrl] : your callBack url
   /// [provider_short_tag] : the tag of the provider
@@ -240,7 +229,8 @@ class ApiService {
         }
       }
     } catch (e) {
-      print(" 200 error /makePayment : ${e}");
+      print(" Catch error /makePayment : ${e}");
+      payUnitStream.paymentSink.addError("Error");
       closeDialog(context);
     } finally {
       closeDialog(context);

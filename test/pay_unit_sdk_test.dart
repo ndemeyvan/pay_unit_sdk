@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 
-// import 'package:payunitpackage/payunitpackage.dart';
+// import 'package:payunitpackage/pay_unit_sdk.dart';
 
 void main() {
 //  test('adds one to input values', () {

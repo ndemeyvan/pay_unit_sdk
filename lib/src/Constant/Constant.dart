@@ -6,7 +6,7 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:intl/intl.dart';
 import 'package:pay_unit_sdk/src/blocs/PayUnitStream.dart';
 
-import '../../payunitpackage.dart';
+import '../../pay_unit_sdk.dart';
 
 var baseUrl = "https://app-payunit.sevengps.net"; //local
 
@@ -64,7 +64,6 @@ Widget paymentComponent(
     @required Function isvalidPhoneState,
 
     ) {
-
   return Padding(
     padding: EdgeInsets.only(left: 30, right: 30),
     child: Column(
@@ -191,7 +190,7 @@ Widget paymentComponent(
         Visibility(
           visible: displayError,
           child: Text(
-            "Hummm something didn't work, please retry ",
+            "Hummm something didn't work, check your information and try again .",
             style: TextStyle(color: Colors.red, fontSize: 12),
             textAlign: TextAlign.center,
           ),
@@ -219,8 +218,11 @@ succesPaymentDialog(String msg, BuildContext context, String title,Function acti
       desc: msg,
       btnOkColor: Colors.green,
       btnOkText: "Continue",
-      btnCancelOnPress: () async {
+      btnOkOnPress: () async {
         action();
       })
     ..show();
 }
+
+
+

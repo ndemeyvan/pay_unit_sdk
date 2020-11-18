@@ -1,8 +1,8 @@
 name: pay_unit_sdk
 description: A new Flutter package to pay bill with Pay unit system.
-version: 0.0.3
+version: 0.0.8
 #author: <y.ndeme@sevenadvancedacademy.com>
-homepage: https://github.com/ndemeyvan/PayUnitPackageTest.git
+homepage: https://github.com/ndemeyvan/pay_unit_sdk.git
 
 environment:
   sdk: ">=2.7.0 <3.0.0"
