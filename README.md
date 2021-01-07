@@ -2,71 +2,86 @@
 
 A new Flutter package.
 
-## Getting Started
 
-This project is a starting point for a Dart
-[package](https://flutter.dev/developing-packages/),
-a library module containing code that can be shared easily across
-multiple Flutter or Dart projects.
 
-For help getting started with Flutter, view our
-[online documentation](https://flutter.dev/docs), which offers tutorials, 
-samples, guidance on mobile development, and a full API reference.
 
-## To use this package, all you need to do is apply the PayUnitButton button in your widget and enter the requested information as a parameter as in the example below.
+## To use this package, all you need to do is follow the instruction bellow .
+
+## Add mavenCentral() to your project
+
+Add mavenCentral() to allprojects in gradle > build.gradle .
+
+```
+allprojects {
+    repositories {
+        google()
+        mavenCentral() <---
+        jcenter()
+    }
+}
+
+```
+## Add multiDexEnabled , update the minSdkVersion and implementation 'com.android.support:multidex:1.0.3' the to your project
+
+Add multiDexEnabled true and implementation 'com.android.support:multidex:1.0.3' to your app/build.gradle file .
+The minSdkVersion must be 19 and above
+
 ```
 
-import 'dart:math';
-import 'package:eneopayappskeletteforsdk/PayButton.dart';
-import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
-import 'package:uuid/uuid.dart';
 
-void main() => runApp(App());
+    defaultConfig {
+        // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
+        applicationId "<Your app signature >"
+        minSdkVersion 19
+        targetSdkVersion 28
+        versionCode flutterVersionCode.toInteger()
+        versionName flutterVersionName
+        multiDexEnabled true
 
-class App extends StatelessWidget {
+    }
 
-  @override
-  Widget build(BuildContext context) => MaterialApp(
-    home: Scaffold(
-      body: Home(),
-    ),
-  );
 
+
+dependencies {
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
+    implementation 'com.android.support:multidex:1.0.3'
 }
 
-var uuid = Uuid();
+```
 
-class Home extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: <Widget>[
-        Padding(
-          padding: EdgeInsets.only(left: 30, right: 30),
-          child: 
+## Add Pay unit to your app .
 
-	PayUnitButton(
-            text: "Payer",
-            X_API_KEY: "X_API_KEY",
-            transactionCallBackUrl: "transactionCallBackUrl",
-            transonAmount: "transonAmount",
-            color: Colors,
-            merchandUserName: "merchandUserName",
-            merchandPassword: "merchandPassword",
-            actionAfterProccess: (){
-             //Code to run after the transaction is successful
-            },
-          ),
 
-        )
-      ],
-    );
-  }
 
-}
+```
+ PayUnitButton(
+	      apiKey: "<Your apiKey>",
+              apiUser: "<Your apiuser>",
+              apiPassword: "<Your apiPassword>",
+              sandbox: '<Your usage mode>', // 'sandbox' or 'live' for production mode
+              transactionCallBackUrl: "<Your transactionCallBackUrl url>",
+              notiFyUrl: "<Your notification url>",
+              transactionAmount: "<Your transaction amount>",
+ 	      text: "<Your Button text>",
+              color: <Custom color of the button Example: Colors.red>,
+              actionAfterProccess: (transactionId,  transactionStatus) {
+		//here is the action who start after the end of the paiement , you can perform 		
+		//some operation here , like display a alertDialog after the end of the payment.
+                    AwesomeDialog(
+                        dismissOnBackKeyPress: false,
+                        dismissOnTouchOutside: false,
+                        context: context,
+                        dialogType: DialogType.SUCCES,
+                        animType: AnimType.BOTTOMSLIDE,
+                        title: "Pay unit",
+                        desc: "Your transaction : $transactionId was successful",
+                        btnOkColor: Colors.green,
+                        btnOkText: "Continue",
+                        btnOkOnPress: () async {
+                        })
+                      ..show();
+		//Here we use Awesome dialog package to display a success message of the paiment
+              },
+            ),
 
 ```

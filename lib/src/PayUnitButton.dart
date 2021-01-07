@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:auto_size_text/auto_size_text.dart';
 import 'package:awesome_dialog/awesome_dialog.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 import 'ApiService.dart';
@@ -12,31 +13,37 @@ import 'package:native_progress_hud/native_progress_hud.dart';
 import 'package:simple_animations/simple_animations.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
-import 'package:webview_flutter/webview_flutter.dart';
+// import 'package:webview_flutter/webview_flutter.dart';
 import './Constant/Constant.dart' as constant;
 
+
+
 class PayUnitButton extends StatefulWidget {
-  final Function actionAfterProccess;
+  final Function(String transactionId, String transactionStatus) actionAfterProccess;
   final String text;
   final IconData icon;
   final double width;
   final bool isFixedHeight;
   final Color color;
-  final String transonAmount;
+  final String transactionAmount;
   final String transactionCallBackUrl;
-  final String merchandUserName;
-  final String merchandPassword;
-  final String X_API_KEY;
+  final String apiUser;
+  final String apiPassword;
+  final String apiKey;
+  final String sandbox;
+  final String notiFyUrl;
 
   const PayUnitButton({
-    @required Function this.actionAfterProccess,
+    @required  this.actionAfterProccess,
     @required this.text,
     @required this.color,
-    @required this.transonAmount,
+    @required this.transactionAmount,
     @required this.transactionCallBackUrl,
-    @required this.merchandUserName,
-    @required this.merchandPassword,
-    @required this.X_API_KEY,
+    @required this.apiUser,
+    @required this.apiPassword,
+    @required this.apiKey,
+    @required this.sandbox,
+    @required this.notiFyUrl,
     this.width = double.infinity,
     this.isFixedHeight = true,
     this.icon,
@@ -51,6 +58,7 @@ class _PayUnitButtonState extends State<PayUnitButton> with AnimationMixin {
 
   @override
   void initState() {
+
     super.initState();
     final curveAnimation = CurvedAnimation(
         parent: controller, curve: Curves.easeIn, reverseCurve: Curves.easeIn);
@@ -78,12 +86,13 @@ class _PayUnitButtonState extends State<PayUnitButton> with AnimationMixin {
         showMaterialModalBottomSheet(
           context: context,
           builder: (context, scrollController) => PayDialog(
-            X_API_KEY: widget.X_API_KEY,
+            X_API_KEY: widget.apiKey,
             transactionCallBackUrl: widget.transactionCallBackUrl,
-            transactionAmount: widget.transonAmount,
-            actionAfterProccess: widget.actionAfterProccess,
-            merchandPassword: widget.merchandPassword,
-            merchandUserName: widget.merchandUserName,
+            transactionAmount: widget.transactionAmount,
+            actionAfterProccess:   widget.actionAfterProccess,
+            merchandPassword: widget.apiPassword,
+            merchandUserName: widget.apiUser,
+            sandbox: widget.sandbox,
           ),
         );
       },
@@ -147,6 +156,7 @@ class PayDialog extends StatefulWidget {
   final transactionCallBackUrl;
   final String merchandUserName;
   final String merchandPassword;
+  final String sandbox;
 
   const PayDialog({
     @required this.X_API_KEY,
@@ -155,6 +165,7 @@ class PayDialog extends StatefulWidget {
     @required this.actionAfterProccess,
     @required this.merchandUserName,
     @required this.merchandPassword,
+    @required this.sandbox,
   });
 
   @override
@@ -163,7 +174,6 @@ class PayDialog extends StatefulWidget {
 
 class _PayDialogState extends State<PayDialog> with AnimationMixin {
   Animation<double> _scale;
-
   //Make A get request to get All the Actual Providers
   ApiService api = new ApiService();
   String transaction_id = constant.getRandomId();
@@ -182,7 +192,10 @@ class _PayDialogState extends State<PayDialog> with AnimationMixin {
         transaction_id: transaction_id,
         description: "payUnitOnlinePayment",
         merchandPassword: widget.merchandPassword,
-        merchandUserName: widget.merchandUserName);
+        sandbox: widget.sandbox,
+        merchandUserName: widget.merchandUserName,
+        actionAfterProccess: widget.actionAfterProccess);
+
   }
 
   @override
@@ -247,7 +260,8 @@ class _PayDialogState extends State<PayDialog> with AnimationMixin {
                                           ['provider_short_tag'];
                                           print(
                                               "provider_id : $provider_short_tag");
-                                          if (provider_short_tag == "mtnmomo") {
+                                          if (provider_short_tag == "mtnmomo" ||
+                                              provider_short_tag == "orange") {
                                             Navigator.pop(context);
                                             showMaterialModalBottomSheet(
                                               context: context,
@@ -269,42 +283,35 @@ class _PayDialogState extends State<PayDialog> with AnimationMixin {
                                                     merchandPassword:
                                                     widget.merchandPassword,
                                                     transaction_id: transaction_id,
+                                                    sandbox: widget.sandbox,
+                                                  ),
+                                            );
+                                          } else if (provider_short_tag ==
+                                              "eu") {
+                                            showMaterialModalBottomSheet(
+                                              context: context,
+                                              builder:
+                                                  (context, scrollController) =>
+                                                  PayDialogWithExpressUnion(
+                                                    X_API_KEY: widget.X_API_KEY,
+                                                    transactionCallBackUrl: widget
+                                                        .transactionCallBackUrl,
+                                                    transactionAmount:
+                                                    widget.transactionAmount,
+                                                    actionAfterProccess:
+                                                    widget.actionAfterProccess,
+                                                    provider_short_tag:
+                                                    snapshot.data[index]
+                                                    ['provider_short_tag'],
+                                                    merchandUserName:
+                                                    widget.merchandUserName,
+                                                    merchandPassword:
+                                                    widget.merchandPassword,
+                                                    transaction_id: transaction_id,
+                                                    sandbox: widget.sandbox,
                                                   ),
                                             );
                                           }
-                                          // else if (tag == 'eu') {
-                                          //   Navigator.pop(context);
-                                          //   showMaterialModalBottomSheet(
-                                          //     context: context,
-                                          //     builder:
-                                          //         (context, scrollController) =>
-                                          //             PayDialogWithExpressUnion(
-                                          //       X_API_KEY: widget.X_API_KEY,
-                                          //       transactionAmount:
-                                          //           widget.transactionAmount,
-                                          //       actionAfterProccess:
-                                          //           widget.actionAfterProccess,
-                                          //       provider_short_tag:
-                                          //           snapshot.data[index]
-                                          //               ['provider_short_tag'],
-                                          //     ),
-                                          //   );
-                                          // }
-                                          // else if (tag == 'ecobank') {
-                                          //   Navigator.pop(context);
-                                          //   showMaterialModalBottomSheet(
-                                          //       context: context,
-                                          //       builder: (context,
-                                          //               scrollController) =>
-                                          //           PayDialogWithEcobank(
-                                          //             X_API_KEY: widget.X_API_KEY,
-                                          //             transactionAmount: widget
-                                          //                 .transactionAmount,
-                                          //             actionAfterProccess: widget
-                                          //                 .actionAfterProccess,
-                                          //             provider_short_tag: tag,
-                                          //           ));
-                                          // }
                                         },
                                         child: Column(
                                           children: [
@@ -334,12 +341,21 @@ class _PayDialogState extends State<PayDialog> with AnimationMixin {
                                             SizedBox(
                                               height: 10,
                                             ),
-                                            Text(
+                                            AutoSizeText(
                                               snapshot.data[index]
                                               ['provider_name'],
-                                              style: TextStyle(
-                                                  color: Colors.black),
+                                              style: TextStyle(fontSize: 10),
+                                              textAlign: TextAlign.center,
+                                              maxLines: 2,
+                                              overflow: TextOverflow.ellipsis,
                                             )
+                                            // Text(
+                                            //   snapshot.data[index]
+                                            //       ['provider_name'],
+                                            //   textAlign: TextAlign.center,
+                                            //   style: TextStyle(
+                                            //       color: Colors.black,),
+                                            // )
                                           ],
                                         ));
                                   },
@@ -378,6 +394,7 @@ class PayDialogWithMomo extends StatefulWidget {
   final String transactionCallBackUrl;
   final String merchandUserName;
   final String merchandPassword;
+  final String sandbox;
 
   const PayDialogWithMomo({
     this.X_API_KEY,
@@ -389,6 +406,7 @@ class PayDialogWithMomo extends StatefulWidget {
     this.transaction_id,
     this.merchandUserName,
     this.merchandPassword,
+    this.sandbox,
   });
 
   @override
@@ -406,7 +424,6 @@ class _PayDialogWithTelcoState extends State<PayDialogWithMomo>
   @override
   void initState() {
     super.initState();
-
   }
 
   @override
@@ -433,12 +450,11 @@ class _PayDialogWithTelcoState extends State<PayDialogWithMomo>
                         widget.provider_short_tag,
                         widget.merchandPassword,
                         widget.merchandUserName,
-                        widget.actionAfterProccess,
-                            () {
-                          setState(() {
-                            _autoValidate = true;
-                          });
-                        }),
+                        widget.actionAfterProccess, () {
+                      setState(() {
+                        _autoValidate = true;
+                      });
+                    }, widget.sandbox),
                   );
                 } else if (snapshot.connectionState == ConnectionState.none) {
                   return Text("Turn on Your internet Connexion");
@@ -468,25 +484,23 @@ class _PayDialogWithTelcoState extends State<PayDialogWithMomo>
                   return Container(
                     height: MediaQuery.of(context).size.height / 1.5,
                     child: constant.paymentComponent(
-                      false,
-                      context,
-                      widget.transactionAmount,
-                      _formKey,
-                      _autoValidate,
-                      phoneController,
-                      widget.X_API_KEY,
-                      widget.transaction_id,
-                      widget.transactionCallBackUrl,
-                      widget.provider_short_tag,
-                      widget.merchandPassword,
-                      widget.merchandUserName,
-                      widget.actionAfterProccess,
-                          () {
-                        setState(() {
-                          _autoValidate = true;
-                        });
-                      },
-                    ),
+                        false,
+                        context,
+                        widget.transactionAmount,
+                        _formKey,
+                        _autoValidate,
+                        phoneController,
+                        widget.X_API_KEY,
+                        widget.transaction_id,
+                        widget.transactionCallBackUrl,
+                        widget.provider_short_tag,
+                        widget.merchandPassword,
+                        widget.merchandUserName,
+                        widget.actionAfterProccess, () {
+                      setState(() {
+                        _autoValidate = true;
+                      });
+                    }, widget.sandbox),
                   );
                 }
               })),
@@ -518,6 +532,8 @@ class PayDialogWithExpressUnion extends StatefulWidget {
   final String transactionCallBackUrl;
   final String merchandUserName;
   final String merchandPassword;
+  final String sandbox;
+  final String transaction_id;
 
   const PayDialogWithExpressUnion({
     this.X_API_KEY,
@@ -528,6 +544,8 @@ class PayDialogWithExpressUnion extends StatefulWidget {
     this.phoneNumber,
     this.merchandUserName,
     this.merchandPassword,
+    this.sandbox,
+    this.transaction_id,
   });
 
   @override
@@ -647,6 +665,9 @@ class _PayDialogWithExpressUnionState extends State<PayDialogWithExpressUnion>
                               userName: userName,
                               merchandPassword: widget.merchandPassword,
                               merchandUserName: widget.merchandUserName,
+                              sandbox: widget.sandbox,
+                              transaction_id: widget.transaction_id,
+                              context: context,
                               actionAfterProccess: widget.actionAfterProccess);
                         },
                         btnCancelOnPress: () {},
@@ -667,55 +688,57 @@ class _PayDialogWithExpressUnionState extends State<PayDialogWithExpressUnion>
 }
 
 //////////////
-class PayDialogWithEcobank extends StatefulWidget {
-  final String X_API_KEY;
-  final String transactionAmount;
-  final Function actionAfterProccess;
-  final String provider_short_tag;
-  final String phoneNumber;
-  final String transactionCallBackUrl;
-
-  const PayDialogWithEcobank(
-      {this.X_API_KEY,
-        this.transactionAmount,
-        this.actionAfterProccess,
-        this.provider_short_tag,
-        this.transactionCallBackUrl,
-        this.phoneNumber});
-
-  @override
-  _PayDialogWithEcobankState createState() => _PayDialogWithEcobankState();
-}
-
-class _PayDialogWithEcobankState extends State<PayDialogWithEcobank>
-    with AnimationMixin {
-  final Completer<WebViewController> _controller =
-  Completer<WebViewController>();
-
-  @override
-  void initState() {
-    super.initState();
-  }
-
-  final Set<Factory> gestureRecognizers = [
-    Factory(() => EagerGestureRecognizer()),
-  ].toSet();
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      height: MediaQuery.of(context).size.height / 1.5,
-      child: WebView(
-          initialUrl: 'https://ecobank.com',
-          javascriptMode: JavascriptMode.unrestricted,
-          onWebViewCreated: (WebViewController webViewController) {
-            _controller.complete(webViewController);
-          },
-          gestureNavigationEnabled: true,
-          gestureRecognizers: gestureRecognizers),
-    );
-  }
-}
+// class PayDialogWithEcobank extends StatefulWidget {
+//   final String X_API_KEY;
+//   final String transactionAmount;
+//   final Function actionAfterProccess;
+//   final String provider_short_tag;
+//   final String phoneNumber;
+//   final String transactionCallBackUrl;
+//   final String sandbox;
+//
+//   const PayDialogWithEcobank(
+//       {this.X_API_KEY,
+//       this.transactionAmount,
+//       this.actionAfterProccess,
+//       this.provider_short_tag,
+//       this.transactionCallBackUrl,
+//       this.sandbox,
+//       this.phoneNumber});
+//
+//   @override
+//   _PayDialogWithEcobankState createState() => _PayDialogWithEcobankState();
+// }
+//
+// class _PayDialogWithEcobankState extends State<PayDialogWithEcobank>
+//     with AnimationMixin {
+//   final Completer<WebViewController> _controller =
+//       Completer<WebViewController>();
+//
+//   @override
+//   void initState() {
+//     super.initState();
+//   }
+//
+//   final Set<Factory> gestureRecognizers = [
+//     Factory(() => EagerGestureRecognizer()),
+//   ].toSet();
+//
+//   @override
+//   Widget build(BuildContext context) {
+//     return Container(
+//       height: MediaQuery.of(context).size.height / 1.5,
+//       child: WebView(
+//           initialUrl: 'https://ecobank.com',
+//           javascriptMode: JavascriptMode.unrestricted,
+//           onWebViewCreated: (WebViewController webViewController) {
+//             _controller.complete(webViewController);
+//           },
+//           gestureNavigationEnabled: true,
+//           gestureRecognizers: gestureRecognizers),
+//     );
+//   }
+// }
 
 ////////////// Utils
 progressHub(msg, context) {

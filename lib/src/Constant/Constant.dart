@@ -2,13 +2,30 @@ import 'dart:math';
 
 import 'package:awesome_dialog/awesome_dialog.dart';
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:intl/intl.dart';
 import 'package:pay_unit_sdk/src/blocs/PayUnitStream.dart';
 
 import '../../pay_unit_sdk.dart';
 
-var baseUrl = "https://app-payunit.sevengps.net"; //local
+//production link
+var baseUrlSandBox = "https://payunit-sandbox.sevengps.net";
+var baseUrl = "https://payunit-core.sevengps.net";
+
+
+
+
+makeToast(msg, context, greenLight) {
+  Fluttertoast.showToast(
+      msg: msg,
+      toastLength: Toast.LENGTH_SHORT,
+      gravity: ToastGravity.BOTTOM,
+      timeInSecForIosWeb: 15,
+      backgroundColor: greenLight,
+      textColor: Colors.white,
+      fontSize: 16.0);
+}
 
 getRandomId() {
   //initialize the Date of the day
@@ -48,21 +65,21 @@ Widget errorConnexion() {
 }
 
 Widget paymentComponent(
-    @required bool displayError,
-    @required context,
-    @required transactionAmount,
-    @required _formKey,
-    @required _autoValidate,
-    @required phoneController,
-    @required X_API_KEY,
-    @required transaction_id,
-    @required transactionCallBackUrl,
-    @required provider_short_tag,
-    @required merchandPassword,
-    @required merchandUserName,
-    @required actionAfterProccess,
-    @required Function isvalidPhoneState,
-
+    bool displayError,
+    context,
+    transactionAmount,
+    _formKey,
+    _autoValidate,
+    phoneController,
+    X_API_KEY,
+    transaction_id,
+    transactionCallBackUrl,
+    provider_short_tag,
+    merchandPassword,
+    merchandUserName,
+    actionAfterProccess,
+    Function isvalidPhoneState,
+    String sandbox,
     ) {
   return Padding(
     padding: EdgeInsets.only(left: 30, right: 30),
@@ -157,16 +174,18 @@ Widget paymentComponent(
                           payUnitStream.paymentSink.add(true);
                           ApiService api = new ApiService();
                           api.makePayment(
-                              X_API_KEY: X_API_KEY,
-                              transactionAmount: transactionAmount,
-                              transaction_id: transaction_id,
-                              transactionCallBackUrl: transactionCallBackUrl,
-                              phoneNumber: phoneController.text,
-                              provider_short_tag: provider_short_tag,
-                              merchandPassword: merchandPassword,
-                              merchandUserName: merchandUserName,
-                              context: context,
-                              actionAfterProccess: actionAfterProccess);
+                            X_API_KEY: X_API_KEY,
+                            transactionAmount: transactionAmount,
+                            transaction_id: transaction_id,
+                            transactionCallBackUrl: transactionCallBackUrl,
+                            phoneNumber: phoneController.text,
+                            provider_short_tag: provider_short_tag,
+                            merchandPassword: merchandPassword,
+                            merchandUserName: merchandUserName,
+                            context: context,
+                            actionAfterProccess: actionAfterProccess,
+                            sandbox: sandbox,
+                          );
                         },
                         btnCancelOnPress: () {},
                         btnCancelColor: Colors.red,
@@ -176,7 +195,6 @@ Widget paymentComponent(
                   } else {
                     //If all data are not valid then start auto validation.
                     isvalidPhoneState();
-
                   }
                 },
                 text: 'Make Payment',
@@ -190,7 +208,7 @@ Widget paymentComponent(
         Visibility(
           visible: displayError,
           child: Text(
-            "Hummm something didn't work, check your information and try again .",
+            "Hummm something didn't work, please retry ",
             style: TextStyle(color: Colors.red, fontSize: 12),
             textAlign: TextAlign.center,
           ),
@@ -200,29 +218,25 @@ Widget paymentComponent(
   );
 }
 
-
-
-//Displays a dialog
-// box to inform the user...
-/// [context] : is the actual context of the application
-/// [msg] : is the message to display
-/// [title] : is the title of the dialog box
-succesPaymentDialog(String msg, BuildContext context, String title,Function action) {
-  AwesomeDialog(
-      dismissOnBackKeyPress: false,
-      dismissOnTouchOutside: false,
-      context: context,
-      dialogType: DialogType.SUCCES,
-      animType: AnimType.BOTTOMSLIDE,
-      title: title,
-      desc: msg,
-      btnOkColor: Colors.green,
-      btnOkText: "Continue",
-      btnOkOnPress: () async {
-        action();
-      })
-    ..show();
-}
-
-
-
+// //Displays a dialog
+// // box to inform the user...
+// /// [context] : is the actual context of the application
+// /// [msg] : is the message to display
+// /// [title] : is the title of the dialog box
+// succesPaymentDialog(
+//     String msg, BuildContext context, String title, Function action) {
+//   AwesomeDialog(
+//       dismissOnBackKeyPress: false,
+//       dismissOnTouchOutside: false,
+//       context: context,
+//       dialogType: DialogType.SUCCES,
+//       animType: AnimType.BOTTOMSLIDE,
+//       title: title,
+//       desc: msg,
+//       btnOkColor: Colors.green,
+//       btnOkText: "Continue",
+//       btnOkOnPress: () async {
+//         action("dialog action ","dialog action");
+//       })
+//     ..show();
+// }
