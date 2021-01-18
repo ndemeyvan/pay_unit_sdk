@@ -2,6 +2,8 @@ import 'dart:async';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:awesome_dialog/awesome_dialog.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
+import 'package:pay_unit_sdk/src/CheckoutPage.dart';
+import '../pay_unit_sdk.dart';
 import 'ApiService.dart';
 import './blocs/PayUnitStream.dart';
 import 'package:flutter/cupertino.dart';
@@ -13,14 +15,14 @@ import 'package:native_progress_hud/native_progress_hud.dart';
 import 'package:simple_animations/simple_animations.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
-// import 'package:webview_flutter/webview_flutter.dart';
 import './Constant/Constant.dart' as constant;
 
 
 
 class PayUnitButton extends StatefulWidget {
-  final Function(String transactionId, String transactionStatus) actionAfterProccess;
-  final String text;
+  final Function(String transactionId, String transactionStatus)
+  actionAfterProccess;
+  final String productName;
   final IconData icon;
   final double width;
   final bool isFixedHeight;
@@ -34,8 +36,8 @@ class PayUnitButton extends StatefulWidget {
   final String notiFyUrl;
 
   const PayUnitButton({
-    @required  this.actionAfterProccess,
-    @required this.text,
+    @required this.actionAfterProccess,
+    @required this.productName,
     @required this.color,
     @required this.transactionAmount,
     @required this.transactionCallBackUrl,
@@ -58,8 +60,8 @@ class _PayUnitButtonState extends State<PayUnitButton> with AnimationMixin {
 
   @override
   void initState() {
-
     super.initState();
+
     final curveAnimation = CurvedAnimation(
         parent: controller, curve: Curves.easeIn, reverseCurve: Curves.easeIn);
     _scale = Tween<double>(begin: 1, end: 0.9).animate(curveAnimation);
@@ -87,9 +89,10 @@ class _PayUnitButtonState extends State<PayUnitButton> with AnimationMixin {
           context: context,
           builder: (context, scrollController) => PayDialog(
             X_API_KEY: widget.apiKey,
+            productName: widget.productName,
             transactionCallBackUrl: widget.transactionCallBackUrl,
             transactionAmount: widget.transactionAmount,
-            actionAfterProccess:   widget.actionAfterProccess,
+            actionAfterProccess: widget.actionAfterProccess,
             merchandPassword: widget.apiPassword,
             merchandUserName: widget.apiUser,
             sandbox: widget.sandbox,
@@ -120,22 +123,12 @@ class _PayUnitButtonState extends State<PayUnitButton> with AnimationMixin {
     child: Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: <Widget>[
-        widget.icon != null
-            ? Padding(
-          padding: const EdgeInsets.only(left: 4.0),
-          child: Icon(
-            widget.icon,
-            color: Colors.white,
-          ),
-        )
-            : SizedBox(),
-        SizedBox(
-          width: 5,
-        ),
+        // : SizedBox(),
+
         Flexible(
           fit: FlexFit.loose,
           child: Text(
-            '${widget.text}',
+            'Pay with PayUnit',
             // maxLines: 1,
             textAlign: TextAlign.center,
             style: TextStyle(
@@ -144,6 +137,16 @@ class _PayUnitButtonState extends State<PayUnitButton> with AnimationMixin {
                 fontSize: 14),
           ),
         ),
+        // SizedBox(
+        //   width: 10,
+        // ),
+        // Padding(
+        //   padding: const EdgeInsets.only(left: 4.0),
+        //   child: Icon(
+        //     FontAwesomeIcons.moneyBill,
+        //     color: Colors.white,
+        //   ),
+        // ),
       ],
     ),
   );
@@ -153,6 +156,7 @@ class PayDialog extends StatefulWidget {
   final Function actionAfterProccess;
   final String X_API_KEY;
   final transactionAmount;
+  final productName;
   final transactionCallBackUrl;
   final String merchandUserName;
   final String merchandPassword;
@@ -160,6 +164,7 @@ class PayDialog extends StatefulWidget {
 
   const PayDialog({
     @required this.X_API_KEY,
+    @required this.productName,
     @required this.transactionAmount,
     @required this.transactionCallBackUrl,
     @required this.actionAfterProccess,
@@ -174,6 +179,7 @@ class PayDialog extends StatefulWidget {
 
 class _PayDialogState extends State<PayDialog> with AnimationMixin {
   Animation<double> _scale;
+
   //Make A get request to get All the Actual Providers
   ApiService api = new ApiService();
   String transaction_id = constant.getRandomId();
@@ -188,6 +194,7 @@ class _PayDialogState extends State<PayDialog> with AnimationMixin {
         transactionAmount: widget.transactionAmount,
         transactionCallBackUrl: widget.transactionCallBackUrl,
         X_API_KEY: widget.X_API_KEY,
+        productName: widget.productName,
         context: context,
         transaction_id: transaction_id,
         description: "payUnitOnlinePayment",
@@ -195,7 +202,6 @@ class _PayDialogState extends State<PayDialog> with AnimationMixin {
         sandbox: widget.sandbox,
         merchandUserName: widget.merchandUserName,
         actionAfterProccess: widget.actionAfterProccess);
-
   }
 
   @override
@@ -215,7 +221,9 @@ class _PayDialogState extends State<PayDialog> with AnimationMixin {
                         return Text("Turn on Your internet Connexion");
                       } else if (snapshot.data == null) {
                         return Container(
-                          child: Center(child: CircularProgressIndicator()),
+                          child: Center(
+                            child: CupertinoActivityIndicator(),
+                          ),
                         );
                       } else {
                         if (snapshot.data.length <= 0) {
@@ -240,137 +248,205 @@ class _PayDialogState extends State<PayDialog> with AnimationMixin {
                         } else {
                           return Padding(
                             padding: const EdgeInsets.symmetric(horizontal: 10),
-                            child: Column(
-                              children: [
-                                SizedBox(
-                                  height: 10,
-                                ),
-                                GridView.builder(
-                                  shrinkWrap: true,
-                                  itemCount: snapshot.data.length,
-                                  gridDelegate:
-                                  SliverGridDelegateWithFixedCrossAxisCount(
-                                      crossAxisCount: 3),
-                                  itemBuilder:
-                                      (BuildContext context, int index) {
-                                    return GestureDetector(
-                                        onTap: () {
-                                          String provider_short_tag =
-                                          snapshot.data[index]
-                                          ['provider_short_tag'];
-                                          print(
-                                              "provider_id : $provider_short_tag");
-                                          if (provider_short_tag == "mtnmomo" ||
-                                              provider_short_tag == "orange") {
-                                            Navigator.pop(context);
-                                            showMaterialModalBottomSheet(
-                                              context: context,
-                                              builder:
-                                                  (context, scrollController) =>
-                                                  PayDialogWithMomo(
-                                                    X_API_KEY: widget.X_API_KEY,
-                                                    transactionCallBackUrl: widget
-                                                        .transactionCallBackUrl,
-                                                    transactionAmount:
-                                                    widget.transactionAmount,
-                                                    actionAfterProccess:
-                                                    widget.actionAfterProccess,
-                                                    provider_short_tag:
-                                                    snapshot.data[index]
-                                                    ['provider_short_tag'],
-                                                    merchandUserName:
-                                                    widget.merchandUserName,
-                                                    merchandPassword:
-                                                    widget.merchandPassword,
-                                                    transaction_id: transaction_id,
-                                                    sandbox: widget.sandbox,
-                                                  ),
-                                            );
-                                          } else if (provider_short_tag ==
-                                              "eu") {
-                                            showMaterialModalBottomSheet(
-                                              context: context,
-                                              builder:
-                                                  (context, scrollController) =>
-                                                  PayDialogWithExpressUnion(
-                                                    X_API_KEY: widget.X_API_KEY,
-                                                    transactionCallBackUrl: widget
-                                                        .transactionCallBackUrl,
-                                                    transactionAmount:
-                                                    widget.transactionAmount,
-                                                    actionAfterProccess:
-                                                    widget.actionAfterProccess,
-                                                    provider_short_tag:
-                                                    snapshot.data[index]
-                                                    ['provider_short_tag'],
-                                                    merchandUserName:
-                                                    widget.merchandUserName,
-                                                    merchandPassword:
-                                                    widget.merchandPassword,
-                                                    transaction_id: transaction_id,
-                                                    sandbox: widget.sandbox,
-                                                  ),
-                                            );
-                                          }
-                                        },
-                                        child: Column(
-                                          children: [
-                                            Container(
-                                                decoration: ShapeDecoration(
-                                                    shape: RoundedRectangleBorder(
-                                                        borderRadius:
-                                                        BorderRadiusDirectional
-                                                            .circular(20))),
-                                                margin: EdgeInsets.zero,
-                                                padding: EdgeInsets.only(
-                                                    left: 5, right: 5),
-                                                child: Card(
-                                                  shape: BeveledRectangleBorder(
-                                                    borderRadius:
-                                                    BorderRadius.circular(
-                                                        50.0),
-                                                  ),
-                                                  child: Image(
-                                                    image: NetworkImage(
-                                                      snapshot.data[index]
-                                                      ['provider_logo'],
+                            child: SingleChildScrollView(
+                              child: Column(
+                                children: [
+                                  SizedBox(
+                                    height: 10,
+                                  ),
+                                  GridView.builder(
+                                    shrinkWrap: true,
+                                    itemCount: snapshot.data.length,
+                                    gridDelegate:
+                                    SliverGridDelegateWithFixedCrossAxisCount(
+                                        crossAxisCount: 3),
+                                    itemBuilder:
+                                        (BuildContext context, int index) {
+                                      return GestureDetector(
+                                          onTap: () async {
+                                            String provider_short_tag =
+                                            snapshot.data[index]
+                                            ['provider_short_tag'];
+                                            if (provider_short_tag ==
+                                                "mtnmomo" ||
+                                                provider_short_tag ==
+                                                    "orange") {
+                                              Navigator.pop(context);
+                                              showMaterialModalBottomSheet(
+                                                context: context,
+                                                builder: (context,
+                                                    scrollController) =>
+                                                    PayDialogWithMomo(
+                                                      X_API_KEY: widget.X_API_KEY,
+                                                      productName: widget.productName,
+                                                      transactionCallBackUrl: widget
+                                                          .transactionCallBackUrl,
+                                                      transactionAmount:
+                                                      widget.transactionAmount,
+                                                      actionAfterProccess: widget
+                                                          .actionAfterProccess,
+                                                      provider_short_tag: snapshot
+                                                          .data[index]
+                                                      ['provider_short_tag'],
+                                                      merchandUserName:
+                                                      widget.merchandUserName,
+                                                      merchandPassword:
+                                                      widget.merchandPassword,
+                                                      transaction_id:
+                                                      transaction_id,
+                                                      sandbox: widget.sandbox,
                                                     ),
-                                                    fit: BoxFit.fitWidth,
-                                                  ),
-                                                )),
-                                            SizedBox(
-                                              height: 10,
-                                            ),
-                                            AutoSizeText(
-                                              snapshot.data[index]
-                                              ['provider_name'],
-                                              style: TextStyle(fontSize: 10),
-                                              textAlign: TextAlign.center,
-                                              maxLines: 2,
-                                              overflow: TextOverflow.ellipsis,
-                                            )
-                                            // Text(
-                                            //   snapshot.data[index]
-                                            //       ['provider_name'],
-                                            //   textAlign: TextAlign.center,
-                                            //   style: TextStyle(
-                                            //       color: Colors.black,),
-                                            // )
-                                          ],
-                                        ));
-                                  },
-                                ),
-                                SizedBox(
-                                  height:
-                                  MediaQuery.of(context).size.height * 0.12,
-                                ),
-                                Text(
-                                  "Choice Your Payment method.",
-                                  style: TextStyle(
-                                      color: Colors.black,
-                                      fontWeight: FontWeight.bold),
-                                ),
-                              ],
+                                              );
+                                            } else if (provider_short_tag ==
+                                                "eu") {
+                                              showMaterialModalBottomSheet(
+                                                context: context,
+                                                builder: (context,
+                                                    scrollController) =>
+                                                    PayDialogWithExpressUnion(
+                                                      X_API_KEY: widget.X_API_KEY,
+                                                      productName: widget.productName,
+                                                      transactionCallBackUrl: widget
+                                                          .transactionCallBackUrl,
+                                                      transactionAmount:
+                                                      widget.transactionAmount,
+                                                      actionAfterProccess: widget
+                                                          .actionAfterProccess,
+                                                      provider_short_tag: snapshot
+                                                          .data[index]
+                                                      ['provider_short_tag'],
+                                                      merchandUserName:
+                                                      widget.merchandUserName,
+                                                      merchandPassword:
+                                                      widget.merchandPassword,
+                                                      transaction_id:
+                                                      transaction_id,
+                                                      sandbox: widget.sandbox,
+                                                    ),
+                                              );
+                                            } else if (provider_short_tag ==
+                                                'stripe') {
+                                              // Navigator.of(context).pop();
+                                              var payUnitResult =
+                                              await api.makePayment(
+                                                  X_API_KEY:
+                                                  widget.X_API_KEY,
+                                                  transactionAmount: widget
+                                                      .transactionAmount,
+                                                  transactionCallBackUrl: widget
+                                                      .transactionCallBackUrl,
+                                                  phoneNumber: "6562090008",
+                                                  provider_short_tag:
+                                                  provider_short_tag,
+                                                  userName: "",
+                                                  merchandPassword: widget
+                                                      .merchandPassword,
+                                                  merchandUserName: widget
+                                                      .merchandUserName,
+                                                  sandbox: widget.sandbox,
+                                                  transaction_id:
+                                                  transaction_id,
+                                                  context: context,
+                                                  actionAfterProccess: widget
+                                                      .actionAfterProccess);
+                                              final sessionId =
+                                              await api.createCheckout(
+                                                  amount: widget
+                                                      .transactionAmount,
+                                                  productName:
+                                                  widget.productName,
+                                                  qty: 1,
+                                                  currency: "USD",
+                                                  secretKey: payUnitResult[
+                                                  "secret_key"],
+                                                  context: context,
+                                                  transaction_id:
+                                                  transaction_id);
+                                              api.closeDialog(context);
+                                              Navigator.of(context).pop();
+                                              Navigator.of(context).push(MaterialPageRoute(
+                                                  builder: (_) => CheckoutPage(
+                                                      sessionId: sessionId,
+                                                      publishKey: payUnitResult[
+                                                      "publishable_key"],
+                                                      transactionId:
+                                                      transaction_id,
+                                                      // context: context,
+                                                      merchandUserName: widget
+                                                          .merchandUserName,
+                                                      merchandPassword: widget
+                                                          .merchandPassword,
+                                                      sandbox: widget.sandbox,
+                                                      X_API_KEY:
+                                                      widget.X_API_KEY)));
+                                              makeToast(
+                                                  "Please wait , Stripe is loading...",
+                                                  context,
+                                                  Colors.black);
+
+                                            }
+                                          },
+                                          child: Column(
+                                            children: [
+                                              Container(
+                                                  decoration: ShapeDecoration(
+                                                      shape: RoundedRectangleBorder(
+                                                          borderRadius:
+                                                          BorderRadiusDirectional
+                                                              .circular(
+                                                              20))),
+                                                  margin: EdgeInsets.zero,
+                                                  padding: EdgeInsets.only(
+                                                      left: 5, right: 5),
+                                                  child: Card(
+                                                    shape:
+                                                    BeveledRectangleBorder(
+                                                      borderRadius:
+                                                      BorderRadius.circular(
+                                                          50.0),
+                                                    ),
+                                                    child: Image(
+                                                      image: NetworkImage(
+                                                        snapshot.data[index]
+                                                        ['provider_logo'],
+                                                      ),
+                                                      fit: BoxFit.fitWidth,
+                                                    ),
+                                                  )),
+                                              SizedBox(
+                                                height: 10,
+                                              ),
+                                              AutoSizeText(
+                                                snapshot.data[index]
+                                                ['provider_name'],
+                                                style: TextStyle(fontSize: 10),
+                                                textAlign: TextAlign.center,
+                                                maxLines: 2,
+                                                overflow: TextOverflow.ellipsis,
+                                              )
+                                              // Text(
+                                              //   snapshot.data[index]
+                                              //       ['provider_name'],
+                                              //   textAlign: TextAlign.center,
+                                              //   style: TextStyle(
+                                              //       color: Colors.black,),
+                                              // )
+                                            ],
+                                          ));
+                                    },
+                                  ),
+                                  SizedBox(
+                                    height: MediaQuery.of(context).size.height *
+                                        0.12,
+                                  ),
+                                  Text(
+                                    "Choice Your Payment method.",
+                                    style: TextStyle(
+                                        color: Colors.black,
+                                        fontWeight: FontWeight.bold),
+                                  ),
+                                ],
+                              ),
                             ),
                           );
                         }
@@ -395,9 +471,11 @@ class PayDialogWithMomo extends StatefulWidget {
   final String merchandUserName;
   final String merchandPassword;
   final String sandbox;
+  final String productName;
 
   const PayDialogWithMomo({
     this.X_API_KEY,
+    this.productName,
     this.transactionAmount,
     this.actionAfterProccess,
     this.provider_short_tag,
@@ -468,7 +546,7 @@ class _PayDialogWithTelcoState extends State<PayDialogWithMomo>
                         SizedBox(
                           height: 20,
                         ),
-                        CircularProgressIndicator(),
+                        CupertinoActivityIndicator(),
                         SizedBox(
                           height: MediaQuery.of(context).size.height * 0.1,
                         ),
@@ -534,9 +612,11 @@ class PayDialogWithExpressUnion extends StatefulWidget {
   final String merchandPassword;
   final String sandbox;
   final String transaction_id;
+  final String productName;
 
   const PayDialogWithExpressUnion({
     this.X_API_KEY,
+    this.productName,
     this.transactionAmount,
     this.actionAfterProccess,
     this.provider_short_tag,
@@ -639,8 +719,6 @@ class _PayDialogWithExpressUnionState extends State<PayDialogWithExpressUnion>
                   String phoneNumber = phoneController.text;
                   String userName = userNameController.text;
                   if (phoneNumber.isEmpty || userName.isEmpty) {
-                    ///show diaolog alert the field is empty
-                    print('Phone number is empty');
                   } else {
                     AwesomeDialog(
                         dismissOnBackKeyPress: false,

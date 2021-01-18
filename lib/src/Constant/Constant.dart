@@ -13,13 +13,10 @@ import '../../pay_unit_sdk.dart';
 var baseUrlSandBox = "https://payunit-sandbox.sevengps.net";
 var baseUrl = "https://payunit-core.sevengps.net";
 
-
-
-
 makeToast(msg, context, greenLight) {
   Fluttertoast.showToast(
       msg: msg,
-      toastLength: Toast.LENGTH_SHORT,
+      toastLength: Toast.LENGTH_LONG,
       gravity: ToastGravity.BOTTOM,
       timeInSecForIosWeb: 15,
       backgroundColor: greenLight,
@@ -218,25 +215,10 @@ Widget paymentComponent(
   );
 }
 
-// //Displays a dialog
-// // box to inform the user...
-// /// [context] : is the actual context of the application
-// /// [msg] : is the message to display
-// /// [title] : is the title of the dialog box
-// succesPaymentDialog(
-//     String msg, BuildContext context, String title, Function action) {
-//   AwesomeDialog(
-//       dismissOnBackKeyPress: false,
-//       dismissOnTouchOutside: false,
-//       context: context,
-//       dialogType: DialogType.SUCCES,
-//       animType: AnimType.BOTTOMSLIDE,
-//       title: title,
-//       desc: msg,
-//       btnOkColor: Colors.green,
-//       btnOkText: "Continue",
-//       btnOkOnPress: () async {
-//         action("dialog action ","dialog action");
-//       })
-//     ..show();
-// }
+void closeAndToastPaymentAreMake(context){
+  Navigator.of(context).pop();
+  makeToast(
+      "Your transaction has been initiated", context, Colors.blue);
+}
+
+

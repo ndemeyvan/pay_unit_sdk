@@ -9,8 +9,6 @@ class PayUnitStream {
 
   Stream<List> get settListProviderStream => providerStreamController.stream;
 
-
-
   /////////////////State controller
   final paymentStreamController = StreamController<bool>.broadcast();
 

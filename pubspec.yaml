@@ -1,6 +1,6 @@
 name: pay_unit_sdk
 description: A new Flutter package to pay bill with Pay unit system.
-version: 0.0.16
+version: 1.0.0
 #author: <y.ndeme@sevenadvancedacademy.com>
 homepage: https://github.com/ndemeyvan/pay_unit_sdk.git
 
@@ -17,14 +17,16 @@ dependencies:
   awesome_dialog: ^1.1.3
   native_progress_hud: ^1.0.3
   intl_translation: ^0.17.1
-  http: ^0.12.0
   intl: ^0.16.1
   fluttertoast: ^7.1.1
   http_auth: ^0.3.1
+#  ask mavenCentral() to compile
   pusher_websocket_flutter: ^0.2.0
   auto_size_text: ^2.1.0
-  stripe_payment: ^1.0.9
-
+  dio: ^3.0.10
+  webview_flutter: ^0.3.22+1
+#  flutter_inappwebview: ^3.0.1
+  http: ^0.12.2
 
 dev_dependencies:
   flutter_test:
