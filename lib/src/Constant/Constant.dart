@@ -215,10 +215,9 @@ Widget paymentComponent(
   );
 }
 
-void closeAndToastPaymentAreMake(context){
+void closeAndToastPaymentAreMake(context) {
   Navigator.of(context).pop();
-  makeToast(
-      "Your transaction has been initiated", context, Colors.blue);
+  makeToast("Your transaction has been initiated", context, Colors.blue);
 }
 
 

@@ -3,6 +3,7 @@ import 'package:auto_size_text/auto_size_text.dart';
 import 'package:awesome_dialog/awesome_dialog.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 import 'package:pay_unit_sdk/src/CheckoutPage.dart';
+import 'package:pay_unit_sdk/src/CheckoutPaypalPage.dart';
 import '../pay_unit_sdk.dart';
 import 'ApiService.dart';
 import './blocs/PayUnitStream.dart';
@@ -16,7 +17,6 @@ import 'package:simple_animations/simple_animations.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import './Constant/Constant.dart' as constant;
-
 
 
 class PayUnitButton extends StatefulWidget {
@@ -124,7 +124,6 @@ class _PayUnitButtonState extends State<PayUnitButton> with AnimationMixin {
       mainAxisAlignment: MainAxisAlignment.center,
       children: <Widget>[
         // : SizedBox(),
-
         Flexible(
           fit: FlexFit.loose,
           child: Text(
@@ -197,7 +196,7 @@ class _PayDialogState extends State<PayDialog> with AnimationMixin {
         productName: widget.productName,
         context: context,
         transaction_id: transaction_id,
-        description: "payUnitOnlinePayment",
+        description: "Pay unit mobile payment",
         merchandPassword: widget.merchandPassword,
         sandbox: widget.sandbox,
         merchandUserName: widget.merchandUserName,
@@ -267,6 +266,8 @@ class _PayDialogState extends State<PayDialog> with AnimationMixin {
                                             String provider_short_tag =
                                             snapshot.data[index]
                                             ['provider_short_tag'];
+                                            print(
+                                                "provider_id : $provider_short_tag");
                                             if (provider_short_tag ==
                                                 "mtnmomo" ||
                                                 provider_short_tag ==
@@ -299,31 +300,35 @@ class _PayDialogState extends State<PayDialog> with AnimationMixin {
                                               );
                                             } else if (provider_short_tag ==
                                                 "eu") {
-                                              showMaterialModalBottomSheet(
-                                                context: context,
-                                                builder: (context,
-                                                    scrollController) =>
-                                                    PayDialogWithExpressUnion(
-                                                      X_API_KEY: widget.X_API_KEY,
-                                                      productName: widget.productName,
-                                                      transactionCallBackUrl: widget
-                                                          .transactionCallBackUrl,
-                                                      transactionAmount:
-                                                      widget.transactionAmount,
-                                                      actionAfterProccess: widget
-                                                          .actionAfterProccess,
-                                                      provider_short_tag: snapshot
-                                                          .data[index]
-                                                      ['provider_short_tag'],
-                                                      merchandUserName:
-                                                      widget.merchandUserName,
-                                                      merchandPassword:
-                                                      widget.merchandPassword,
-                                                      transaction_id:
-                                                      transaction_id,
-                                                      sandbox: widget.sandbox,
-                                                    ),
-                                              );
+                                              // showMaterialModalBottomSheet(
+                                              //   context: context,
+                                              //   builder: (context,
+                                              //           scrollController) =>
+                                              //       PayDialogWithExpressUnion(
+                                              //     X_API_KEY: widget.X_API_KEY,
+                                              //         productName: widget.productName,
+                                              //     transactionCallBackUrl: widget
+                                              //         .transactionCallBackUrl,
+                                              //     transactionAmount:
+                                              //         widget.transactionAmount,
+                                              //     actionAfterProccess: widget
+                                              //         .actionAfterProccess,
+                                              //     provider_short_tag: snapshot
+                                              //             .data[index]
+                                              //         ['provider_short_tag'],
+                                              //     merchandUserName:
+                                              //         widget.merchandUserName,
+                                              //     merchandPassword:
+                                              //         widget.merchandPassword,
+                                              //     transaction_id:
+                                              //         transaction_id,
+                                              //     sandbox: widget.sandbox,
+                                              //   ),
+                                              // );
+                                              makeToast(
+                                                  "Not yet available",
+                                                  context,
+                                                  Colors.black);
                                             } else if (provider_short_tag ==
                                                 'stripe') {
                                               // Navigator.of(context).pop();
@@ -347,8 +352,10 @@ class _PayDialogState extends State<PayDialog> with AnimationMixin {
                                                   transaction_id:
                                                   transaction_id,
                                                   context: context,
+                                                  currency: "USD",
                                                   actionAfterProccess: widget
                                                       .actionAfterProccess);
+                                              // print(" Result on payButton : $payUnitResult");
                                               final sessionId =
                                               await api.createCheckout(
                                                   amount: widget
@@ -380,10 +387,63 @@ class _PayDialogState extends State<PayDialog> with AnimationMixin {
                                                       X_API_KEY:
                                                       widget.X_API_KEY)));
                                               makeToast(
-                                                  "Please wait , Stripe is loading...",
+                                                  "Please wait the loading of Stripe ...",
                                                   context,
                                                   Colors.black);
 
+                                            }else if(provider_short_tag ==
+                                                'paypal'){
+                                              var payUnitResult =
+                                              await api.makePayment(
+                                                  X_API_KEY:
+                                                  widget.X_API_KEY,
+                                                  currency: "USD",
+                                                  transactionAmount: widget
+                                                      .transactionAmount,
+                                                  transactionCallBackUrl: widget
+                                                      .transactionCallBackUrl,
+                                                  phoneNumber: null,
+                                                  provider_short_tag:
+                                                  provider_short_tag,
+                                                  userName: "",
+                                                  merchandPassword: widget
+                                                      .merchandPassword,
+                                                  merchandUserName: widget
+                                                      .merchandUserName,
+                                                  sandbox: widget.sandbox,
+                                                  transaction_id:
+                                                  transaction_id,
+                                                  context: context,
+                                                  actionAfterProccess: widget
+                                                      .actionAfterProccess);
+
+                                              Navigator.of(context).pop();
+                                              Navigator.of(context).push(MaterialPageRoute(
+                                                  builder: (_) => CheckoutPaypalPage(
+                                                      orderId: payUnitResult[
+                                                      "order_id"],
+                                                      transactionId:
+                                                      transaction_id,
+                                                      // context: context,
+                                                      merchandUserName: widget
+                                                          .merchandUserName,
+                                                      merchandPassword: widget
+                                                          .merchandPassword,
+                                                      amount: widget
+                                                          .transactionAmount,
+                                                      sandbox: widget.sandbox,
+                                                      X_API_KEY:
+                                                      widget.X_API_KEY)));
+                                              makeToast(
+                                                  "Please wait the loading of Paypal ...",
+                                                  context,
+                                                  Colors.black);
+                                            }else  if (provider_short_tag ==
+                                                "yup" ) {
+                                              makeToast(
+                                                  "Not yet available",
+                                                  context,
+                                                  Colors.black);
                                             }
                                           },
                                           child: Column(
@@ -719,6 +779,8 @@ class _PayDialogWithExpressUnionState extends State<PayDialogWithExpressUnion>
                   String phoneNumber = phoneController.text;
                   String userName = userNameController.text;
                   if (phoneNumber.isEmpty || userName.isEmpty) {
+                    ///show diaolog alert the field is empty
+                    print('Phone number is empty');
                   } else {
                     AwesomeDialog(
                         dismissOnBackKeyPress: false,

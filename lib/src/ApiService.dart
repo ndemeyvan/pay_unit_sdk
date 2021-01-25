@@ -4,17 +4,16 @@ import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:pusher_websocket_flutter/pusher.dart';
-
+import '../pay_unit_sdk.dart';
 import 'blocs/PayUnitStream.dart';
 import 'package:flutter/cupertino.dart';
-import 'package:http/http.dart' as http;
 import 'package:http_auth/http_auth.dart' as http_auth;
 import 'package:native_progress_hud/native_progress_hud.dart';
 import './Constant/Constant.dart'as constant;
 
 class ApiService {
   Channel channel;
-  //  var baseUrl = "https://gateway-test.eneoapps.com:5000";//gateway test
+
   /// [context] : the actual context of the app
   /// [X_API_KEY] : the x-api-key
   /// [transactionAmount] : the amount you want to pay
@@ -35,18 +34,17 @@ class ApiService {
     try {
       //initiation pusher
       await initPusher(transaction_id, actionAfterProccess, context);
-
-      // print(" is sandbox ? /initiatePayment: $sandbox");
+      // await initializeNotifications();
+      print("is sandbox : $sandbox");
       var data = jsonEncode({
         "description": description,
         "transaction_id": transaction_id,
         "total_amount": transactionAmount,
         "return_url": "https://eneocameroon.cm/index.php/en/"
       });
-      // print("this is data send to server : $data");
+      print("this is data send to server : $data");
       var jsonResponse;
-      // print(
-      //     "this is base Url : ${sandbox == 'sandbox' ? constant.baseUrlSandBox : constant.baseUrl}");
+
       var response = await getDigestAuth(merchandUserName, merchandPassword).post(
           "${sandbox == 'sandbox' ? constant.baseUrlSandBox : constant.baseUrl}/gateway/initialize",
           body: data,
@@ -72,6 +70,8 @@ class ApiService {
       }
     } catch (e) {
       print("InitiatePayment catchError : $e");
+      constant.makeToast("Something went wrong , please try again or later",
+          context, Colors.red);
     } finally {
       closeDialog(context);
     }
@@ -92,9 +92,6 @@ class ApiService {
     @required String sandbox,
   }) async {
     try {
-      // print(
-      //     "This is the data of getAllProvider \ntransactionId :$transactionId \ntransactionAmount $transactionAmount  \ntransactionCallBackUrl $transactionCallBackUrl \nmerchandUserName $merchandUserName \merchandPassword $merchandPassword");
-      // print(" is sandbox ? /getAllProviders : $sandbox");
       var jsonResponse;
       var response = await getDigestAuth(merchandUserName, merchandPassword).get(
           "${sandbox == 'sandbox' ? constant.baseUrlSandBox : constant.baseUrl}/gateway/gateways?t_id=$transactionId&t_sum=$transactionAmount&t_url=$transactionCallBackUrl",
@@ -113,8 +110,10 @@ class ApiService {
         }
       }
     } catch (e) {
-      print(" catch error /providers : $e");
+      print(" catch error /providers : ${e}");
       closeDialog(context);
+      constant.makeToast("Something went wrong , please try again or later",
+          context, Colors.red);
     } finally {
       closeDialog(context);
     }
@@ -137,7 +136,8 @@ class ApiService {
     @required String sandbox,
   }) async {
     try {
-      print("PayUnit Run in mode : $sandbox");
+      print(" is sandbox ? /getPaymentStatus: $sandbox");
+      print("I am waiting for push notification ");
       // callback;
       const time = const Duration(seconds: 4);
       Timer _timer;
@@ -170,6 +170,8 @@ class ApiService {
         } else {
           if (jsonResponse != null) {
             print(" Else response /getPaymentStatus : $jsonResponse");
+            constant.makeToast(jsonResponse['error'], context, Colors.red);
+
             closeDialog(context);
             _timer.cancel();
             // payUnitStream.paymentSink.addError("error");
@@ -179,6 +181,8 @@ class ApiService {
     } catch (e) {
       print(" catch error /providers : ${e}");
       // closeDialog(context);
+      constant.makeToast("Something went wrong , please try again or later",
+          context, Colors.red);
     } finally {
       // closeDialog(context);
     }
@@ -204,9 +208,21 @@ class ApiService {
     @required transaction_id,
     @required merchandPassword,
     @required sandbox,
+    @required currency,
   }) async {
     var response;
-    var data = jsonEncode({
+    var data = currency != null
+        ? jsonEncode({
+      'gateway': provider_short_tag,
+      'amount': transactionAmount,
+      'transaction_id': transaction_id,
+      'return_url': transactionCallBackUrl,
+      'phone_number': phoneNumber,
+      'description': "Pay unit flutter sdk",
+      "name": provider_short_tag,
+      "currency": currency,
+    })
+        : jsonEncode({
       'gateway': provider_short_tag,
       'amount': transactionAmount,
       'transaction_id': transaction_id,
@@ -215,39 +231,48 @@ class ApiService {
       'description': "Pay unit flutter sdk",
       "name": provider_short_tag,
     });
+    print("Environnement : $sandbox");
 
-    // print("this is route : ${sandbox == 'sandbox' ? constant.baseUrlSandBox : constant.baseUrl }/gateway/makepayment");
     try {
+      print("this is sending data : $data");
       var jsonResponse;
       if (provider_short_tag == 'mtnmomo' || provider_short_tag == 'orange') {
         constant.closeAndToastPaymentAreMake(context);
         response = await getDigestAuth(merchandUserName, merchandPassword).post(
-            "${sandbox == 'sandbox' ? constant.baseUrlSandBox : constant.baseUrl }/gateway/makepayment",
+            "${sandbox == 'sandbox' ? constant.baseUrlSandBox : constant.baseUrl}/gateway/makepayment",
             body: data,
             headers: getGlobalHeader(X_API_KEY));
-
       } else if (provider_short_tag == 'eu') {
         constant.closeAndToastPaymentAreMake(context);
         response = await getDigestAuth(merchandUserName, merchandPassword).post(
-            "${sandbox == 'sandbox' ? constant.baseUrlSandBox : constant.baseUrl }/gateway/makepayment",
+            "${sandbox == 'sandbox' ? constant.baseUrlSandBox : constant.baseUrl}/gateway/makepayment",
             body: data,
             headers: getGlobalHeader(X_API_KEY));
-      } else if (provider_short_tag == 'stripe') {
+      } else if (provider_short_tag == 'stripe' ||
+          provider_short_tag == 'paypal') {
         progressHub("Please wait", context);
         response = await getDigestAuth(merchandUserName, merchandPassword).post(
-            "${sandbox == 'sandbox' ? constant.baseUrlSandBox : constant.baseUrl }/gateway/makepayment",
+            "${sandbox == 'sandbox' ? constant.baseUrlSandBox : constant.baseUrl}/gateway/makepayment",
             // "${sandbox =='sandbox' ? constant.baseUrlSandBox : constant.baseUrl }/payments/gateway/makepayment",
             body: data,
             headers: getGlobalHeader(X_API_KEY));
       }
-
-      if (response.statusCode == 200) {
+      print("Global response /makePayment : ${response.body}");
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        // print("200 response /makePayment : ${json.decode(response.body)}");
+        constant.makeToast(
+            json.decode(response.body)['message'], context, Colors.green);
         jsonResponse = json.decode(response.body)["data"];
-        if(provider_short_tag == 'stripe'){
+        if (provider_short_tag == 'stripe') {
           var obj = {
-            "secret_key":jsonResponse["secret_key"],
-            "publishable_key":jsonResponse["publishable_key"]
+            "secret_key": jsonResponse["secret_key"],
+            "publishable_key": jsonResponse["publishable_key"]
           };
+          return obj;
+        }
+        if (provider_short_tag == 'paypal') {
+          closeDialog(context);
+          var obj = {"order_id": jsonResponse["order_id"]};
           return obj;
         }
         getPaymentStatus(
@@ -261,19 +286,22 @@ class ApiService {
             context: context,
             sandbox: sandbox,
             X_API_KEY: X_API_KEY);
-
-
       } else {
+        print(" Else response /makePayment : ${json.decode(response.body)}");
         jsonResponse = json.decode(response.body);
         if (jsonResponse != null) {
           payUnitStream.paymentSink.addError("Error");
           print(" Else response /makePayment : ${json.decode(response)}");
           closeDialog(context);
+          constant.makeToast(jsonResponse['error'], context, Colors.red);
+
         }
       }
     } catch (e) {
-      print("Error in make payment : $e");
+      print("Make payment error : $e");
       closeDialog(context);
+      constant.makeToast("Something went wrong , please try again or later",
+          context, Colors.red);
     } finally {
       // closeDialog(context);
     }
@@ -282,20 +310,27 @@ class ApiService {
   Future<void> initPusher(
       channelName, actionAfterProccess, BuildContext context) async {
     print("Transaction id pusher : $channelName");
+    // print("Transaction actionAfterProcess : $actionAfterProcess");
+
     try {
       await Pusher.init('8e6ec079f9d817bd73eb', PusherOptions(cluster: 'ap4'));
     } catch (e) {
       print(e.message);
     }
+    //connect to pusher
     Pusher.connect(
         onConnectionStateChange: (ConnectionStateChange connectionState) async {
-          print("Connection state : ${connectionState.currentState}");
+          print("Pusher connection state : ${connectionState.currentState}");
         }, onError: (ConnectionError e) {
       print("Error: ${e.message}");
     });
 
+    //connect to channel
     channel = await Pusher.subscribe(channelName);
+    //get data
     channel.bind('payment-event', (last) {
+      // print("this is pusher : ${last.data}");
+
       if (jsonDecode(last.data)['transaction_status'] == "SUCCESS") {
         constant.makeToast(
             "Your transaction : ${jsonDecode(last.data)['transaction_id']} have the status: ${jsonDecode(last.data)['transaction_status']}",
@@ -307,7 +342,10 @@ class ApiService {
             jsonDecode(last.data)['transaction_status']);
         closeDialog(context);
       } else {
-        constant.makeToast("Your transaction failed , please try again or later", context, Colors.red);
+        constant.makeToast(
+            "Your transaction failed , please try again or later",
+            context,
+            Colors.red);
         payUnitStream.paymentSink.addError("error");
       }
     });
@@ -321,6 +359,16 @@ class ApiService {
     Pusher.unsubscribe(channelName);
   }
 
+  //Able to check the status of the payment of payment to Ecobank
+  // checkEcobankStatusPayment() {}
+
+  // String getEncode() {
+  //   String credentials = "myeasylight-payments:easylight-payments@2020*";
+  //   Codec<String, String> stringToBase64 = utf8.fuse(base64);
+  //   String encoded = stringToBase64.encode(credentials);
+  //   return encoded;
+  // }
+  // http_auth.DigestAuthClient
   getDigestAuth(String username, String password) {
     var digest = http_auth.DigestAuthClient(username, password);
     return digest;
@@ -350,6 +398,7 @@ class ApiService {
         @required context,
         @required transaction_id}) async {
     final auth = 'Basic ' + base64Encode(utf8.encode('$secretKey:'));
+    print(" transaction_id in checkout: $transaction_id");
     final body = {
       'payment_method_types': ['card'],
       'line_items': [
@@ -376,6 +425,7 @@ class ApiService {
       );
       return result.data['id'];
     } on DioError catch (e, s) {
+      print("SessionId Error : ${e.response}");
       closeDialog(context);
       constant.makeToast("Something went wrong , please try again or later",
           context, Colors.red);
@@ -396,24 +446,30 @@ class ApiService {
       "transaction_id": transactionId,
       "transaction_status": transactionStatus
     });
+    print("This is my data : $data");
     progressHub("Please wait", context);
     var response = await getDigestAuth(merchandUserName, merchandPassword).post(
-        "${sandbox == 'sandbox' ? constant.baseUrlSandBox : constant.baseUrl  }/gateway/stripeCallbackMobile",
+        "${sandbox == 'sandbox' ? constant.baseUrlSandBox : constant.baseUrl}/gateway/stripeCallbackMobile",
         body: data,
         headers: getGlobalHeader(X_API_KEY));
-    var jsonResponse;
-
+    var jsonResponse = json.decode(response.body);
     try {
-      if (response.statusCode == 200) {
-
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        // print(
+        //     "200 response /stripeCallBackTransactionIdAndStatus : $jsonResponse");
+        if (transactionStatus == "SUCCESS") {
+          makeToast("Paypal payment success", context, Colors.green);
+        } else {
+          makeToast("Paypal payment Failed", context, Colors.red);
+        }
       } else {
-        print(
-            " Else response /stripeCallBackTransactionIdAndStatus");
-
+        print(" Else response /stripeCallBackTransactionIdAndStatus : $jsonResponse");
       }
     } catch (e) {
       print("StripeCallBack error => $e");
-    }finally{
+      constant.makeToast("Something went wrong , please try again or later",
+          context, Colors.red);
+    } finally {
       closeDialog(context);
     }
   }

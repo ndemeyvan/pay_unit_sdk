@@ -5,4 +5,5 @@ export 'src/ApiService.dart';
 export 'src/blocs/PayUnitStream.dart';
 export 'src/Constant/Constant.dart';
 export 'src/CheckoutPage.dart';
+export 'src/CheckoutPaypalPage.dart';
 
