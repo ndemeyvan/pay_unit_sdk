@@ -1,4 +1,3 @@
-import 'dart:async';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:awesome_dialog/awesome_dialog.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
@@ -17,7 +16,6 @@ import 'package:simple_animations/simple_animations.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import './Constant/Constant.dart' as constant;
-
 
 class PayUnitButton extends StatefulWidget {
   final Function(String transactionId, String transactionStatus)
@@ -131,9 +129,9 @@ class _PayUnitButtonState extends State<PayUnitButton> with AnimationMixin {
             // maxLines: 1,
             textAlign: TextAlign.center,
             style: TextStyle(
-                color: Colors.white,
+                color: Colors.black,
                 fontWeight: FontWeight.w700,
-                fontSize: 14),
+                fontSize: 12),
           ),
         ),
         // SizedBox(
@@ -279,7 +277,8 @@ class _PayDialogState extends State<PayDialog> with AnimationMixin {
                                                     scrollController) =>
                                                     PayDialogWithMomo(
                                                       X_API_KEY: widget.X_API_KEY,
-                                                      productName: widget.productName,
+                                                      productName:
+                                                      widget.productName,
                                                       transactionCallBackUrl: widget
                                                           .transactionCallBackUrl,
                                                       transactionAmount:
@@ -325,10 +324,8 @@ class _PayDialogState extends State<PayDialog> with AnimationMixin {
                                               //     sandbox: widget.sandbox,
                                               //   ),
                                               // );
-                                              makeToast(
-                                                  "Not yet available",
-                                                  context,
-                                                  Colors.black);
+                                              makeToast("Not yet available",
+                                                  context, Colors.black);
                                             } else if (provider_short_tag ==
                                                 'stripe') {
                                               // Navigator.of(context).pop();
@@ -356,43 +353,61 @@ class _PayDialogState extends State<PayDialog> with AnimationMixin {
                                                   actionAfterProccess: widget
                                                       .actionAfterProccess);
                                               // print(" Result on payButton : $payUnitResult");
-                                              final sessionId =
-                                              await api.createCheckout(
-                                                  amount: widget
-                                                      .transactionAmount,
-                                                  productName:
-                                                  widget.productName,
-                                                  qty: 1,
-                                                  currency: "USD",
-                                                  secretKey: payUnitResult[
-                                                  "secret_key"],
-                                                  context: context,
-                                                  transaction_id:
-                                                  transaction_id);
-                                              api.closeDialog(context);
-                                              Navigator.of(context).pop();
-                                              Navigator.of(context).push(MaterialPageRoute(
-                                                  builder: (_) => CheckoutPage(
-                                                      sessionId: sessionId,
-                                                      publishKey: payUnitResult[
-                                                      "publishable_key"],
-                                                      transactionId:
-                                                      transaction_id,
-                                                      // context: context,
-                                                      merchandUserName: widget
-                                                          .merchandUserName,
-                                                      merchandPassword: widget
-                                                          .merchandPassword,
-                                                      sandbox: widget.sandbox,
-                                                      X_API_KEY:
-                                                      widget.X_API_KEY)));
-                                              makeToast(
-                                                  "Please wait the loading of Stripe ...",
-                                                  context,
-                                                  Colors.black);
-
-                                            }else if(provider_short_tag ==
-                                                'paypal'){
+                                              if (payUnitResult["secret_key"] ==
+                                                  "" ||
+                                                  payUnitResult["secret_key"] ==
+                                                      null) {
+                                                constant.makeToast(
+                                                    "Something went wrong , please try again or later",
+                                                    context,
+                                                    Colors.red);
+                                                closeDialog(context);
+                                              } else {
+                                                final sessionId =
+                                                await api.createCheckout(
+                                                    amount: widget
+                                                        .transactionAmount,
+                                                    productName:
+                                                    widget.productName,
+                                                    qty: 1,
+                                                    currency: "USD",
+                                                    secretKey:
+                                                    payUnitResult[
+                                                    "secret_key"],
+                                                    context: context,
+                                                    transaction_id:
+                                                    transaction_id);
+                                                api.closeDialog(context);
+                                                Navigator.of(context).pop();
+                                                Navigator.of(context).push(
+                                                    MaterialPageRoute(
+                                                        builder: (_) =>
+                                                            CheckoutPage(
+                                                                sessionId:
+                                                                sessionId,
+                                                                publishKey:
+                                                                payUnitResult[
+                                                                "publishable_key"],
+                                                                transactionId:
+                                                                transaction_id,
+                                                                // context: context,
+                                                                merchandUserName:
+                                                                widget
+                                                                    .merchandUserName,
+                                                                merchandPassword:
+                                                                widget
+                                                                    .merchandPassword,
+                                                                sandbox: widget
+                                                                    .sandbox,
+                                                                X_API_KEY: widget
+                                                                    .X_API_KEY)));
+                                                makeToast(
+                                                    "Please wait the loading of Stripe ...",
+                                                    context,
+                                                    Colors.black);
+                                              }
+                                            } else if (provider_short_tag ==
+                                                'paypal') {
                                               var payUnitResult =
                                               await api.makePayment(
                                                   X_API_KEY:
@@ -418,32 +433,47 @@ class _PayDialogState extends State<PayDialog> with AnimationMixin {
                                                       .actionAfterProccess);
 
                                               Navigator.of(context).pop();
-                                              Navigator.of(context).push(MaterialPageRoute(
-                                                  builder: (_) => CheckoutPaypalPage(
-                                                      orderId: payUnitResult[
-                                                      "order_id"],
-                                                      transactionId:
-                                                      transaction_id,
-                                                      // context: context,
-                                                      merchandUserName: widget
-                                                          .merchandUserName,
-                                                      merchandPassword: widget
-                                                          .merchandPassword,
-                                                      amount: widget
-                                                          .transactionAmount,
-                                                      sandbox: widget.sandbox,
-                                                      X_API_KEY:
-                                                      widget.X_API_KEY)));
-                                              makeToast(
-                                                  "Please wait the loading of Paypal ...",
-                                                  context,
-                                                  Colors.black);
-                                            }else  if (provider_short_tag ==
-                                                "yup" ) {
-                                              makeToast(
-                                                  "Not yet available",
-                                                  context,
-                                                  Colors.black);
+                                              if (payUnitResult["order_id"] ==
+                                                  "" ||
+                                                  payUnitResult["order_id"] ==
+                                                      null) {
+                                                constant.makeToast(
+                                                    "Something went wrong , please try again or later",
+                                                    context,
+                                                    Colors.red);
+                                                closeDialog(context);
+                                              } else {
+                                                Navigator.of(context).push(
+                                                    MaterialPageRoute(
+                                                        builder: (_) =>
+                                                            CheckoutPaypalPage(
+                                                                orderId:
+                                                                payUnitResult[
+                                                                "order_id"],
+                                                                transactionId:
+                                                                transaction_id,
+                                                                // context: context,
+                                                                merchandUserName:
+                                                                widget
+                                                                    .merchandUserName,
+                                                                merchandPassword:
+                                                                widget
+                                                                    .merchandPassword,
+                                                                amount: widget
+                                                                    .transactionAmount,
+                                                                sandbox: widget
+                                                                    .sandbox,
+                                                                X_API_KEY: widget
+                                                                    .X_API_KEY)));
+                                                makeToast(
+                                                    "Please wait the loading of Paypal ...",
+                                                    context,
+                                                    Colors.black);
+                                              }
+                                            } else if (provider_short_tag ==
+                                                "yup") {
+                                              makeToast("Not yet available",
+                                                  context, Colors.black);
                                             }
                                           },
                                           child: Column(
@@ -479,7 +509,7 @@ class _PayDialogState extends State<PayDialog> with AnimationMixin {
                                               AutoSizeText(
                                                 snapshot.data[index]
                                                 ['provider_name'],
-                                                style: TextStyle(fontSize: 10),
+                                                style: TextStyle(fontSize: 5),
                                                 textAlign: TextAlign.center,
                                                 maxLines: 2,
                                                 overflow: TextOverflow.ellipsis,
