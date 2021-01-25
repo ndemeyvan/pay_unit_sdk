@@ -257,9 +257,7 @@ class ApiService {
             body: data,
             headers: getGlobalHeader(X_API_KEY));
       }
-      print("Global response /makePayment : ${response.body}");
       if (response.statusCode == 200 || response.statusCode == 201) {
-        // print("200 response /makePayment : ${json.decode(response.body)}");
         constant.makeToast(
             json.decode(response.body)['message'], context, Colors.green);
         jsonResponse = json.decode(response.body)["data"];
