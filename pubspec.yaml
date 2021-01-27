@@ -1,6 +1,6 @@
 name: pay_unit_sdk
 description: A new Flutter package to pay bill with Pay unit system.
-version: 1.0.6
+version: 1.0.7
 #author: <y.ndeme@sevenadvancedacademy.com>
 homepage: https://github.com/ndemeyvan/pay_unit_sdk.git
 
@@ -24,7 +24,7 @@ dependencies:
   pusher_websocket_flutter: ^0.2.0
   auto_size_text: ^2.1.0
   dio: ^3.0.10
-  webview_flutter: ^0.3.22+1
+  webview_flutter: ^1.0.7
 #  flutter_inappwebview: ^3.0.1
 #  http: ^0.12.2
 

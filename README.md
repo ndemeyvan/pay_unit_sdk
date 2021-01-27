@@ -7,9 +7,13 @@ A new Flutter package.
 
 ## To use this package, all you need to do is follow the instruction bellow .
 
+## Use flutter sdk v.1.22.0 +
+
 ## Add mavenCentral() to your project .
 
 Add mavenCentral() to allprojects in gradle > build.gradle .
+
+
 
 ```
 allprojects {
