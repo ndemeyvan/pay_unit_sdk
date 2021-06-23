@@ -3,12 +3,18 @@
 A Pay unit sdk package.
 
 
+<img width="1151" alt="shot" src="https://user-images.githubusercontent.com/44162391/122916187-88287b00-d354-11eb-959b-fca45e291254.png">
 
-![Screenshot_2021-01-29-00-22-35-334_com sevengps eneopayappskeletteforsdk](https://user-images.githubusercontent.com/44162391/106212135-2ab64680-6187-11eb-8701-c559597fec3a.jpg)
 
-## To use this package, all you need to do is follow the instruction bellow .
+## NEW Pay_unit_sdk VERSION 2.0.7 ==> Support Flutter 2.x .
+## FOR FLUTTER VERSION < 2.x ==> 2.0.4 without Cupertino package because the package already has it .
+
+
+## To use this package, all you need to do is follow the instruction bellow ,  Please Download the recent version of the SDK .
 
 ## Use flutter sdk v.1.22.0 +
+
+##  minSdkVersion 19
 
 ## Add mavenCentral() to your project .
 
@@ -28,38 +34,40 @@ allprojects {
 ```
 
 
+## Make sure the icon of your app is locate is like @mipmap/ic_launcher . to get the PayUnit sdk notification in your app after every transaction
+
+
 ## Add Pay unit to your app .
+
+## Add // @dart=2.9 to your main.dart before importation list to avoid null-safety
+ .
 
 
 ```
- PayUnitButton(
-	      apiKey: "<Your apiKey>",
-              apiUser: "<Your apiuser>",
-              apiPassword: "<Your apiPassword>",
-              sandbox: '<Your usage mode>', // 'sandbox' or 'live' for production mode
-              transactionCallBackUrl: "<Your transactionCallBackUrl url>",
+// @dart=2.9 <-- put this to your main.dart before importation list to avoid null-safety
+import ....
+        .
+        .
+        .
+        .
+        .
+         PayUnitButton(
+              apiUser:"<Your apiuser>",
+              apiPassword:  "<Your apiPassword>",
+              apiKey: "<Your apiKey>",
+              transactionId: "<The id of your transaction>",
+              mode: 'sandbox' // sandbox or live,
+              transactionCallBackUrl:"<Your transactionCallBackUrl url>",
               notiFyUrl: "<Your notification url>",
-              transactionAmount: "<Your transaction amount>",
-              color: <Custom color of the button Example: Colors.red>,
-              productName: <The name of the product>,
-              actionAfterProccess: (transactionId,  transactionStatus) {
-		//here is the action who start after the end of the paiement , you can perform 	
-		//some operation here , like display a alertDialog after the end of the payment.
-                    AwesomeDialog(
-                        dismissOnBackKeyPress: false,
-                        dismissOnTouchOutside: false,
-                        context: context,
-                        dialogType: DialogType.SUCCES,
-                        animType: AnimType.BOTTOMSLIDE,
-                        title: "Pay unit",
-                        desc: "Your transaction : $transactionId was successful",
-                        btnOkColor: Colors.green,
-                        btnOkText: "Continue",
-                        btnOkOnPress: () async {
-                        })
-                      ..show();
-		//Here we use Awesome dialog package to display a success message of the paiment
+              transactionAmount:  "<Your transaction amount>",
+              currency:"XAF", //// The currency of your transaction : XAF for FCFA or USD for $ ect ...
+              buttonTextColor:  "<Custom the color of the text PayUnit button>",
+              productName:"<The name of the product>",
+              color: "<Custom the color of PayUnit button>",///the colors of the PayUnit Button text DEFAULT WHITE,
+              actionAfterProccess: (transactionId, transactionStatus) {
+               //here is the action who start after the end of the paiement , you can perform 	
+               //some operation here , like display a alertDialog after the end of the payment.
               },
-            ),
+          ),
 
 ```
