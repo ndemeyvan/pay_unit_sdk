@@ -62,11 +62,6 @@ allprojects {
 }
 ```
 
-- NEW Pay_unit_sdk VERSION 2.0.7 ==> Support Flutter 2.x
-- To use this package, all you need to do is follow the instruction bellow, Please Download the recent version of the SDK
-- minSdkVersion 19
-- Use flutter sdk v.1.22.0 +
-
 ## Add the PayUnitButton
 
 ```dart
