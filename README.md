@@ -69,5 +69,20 @@ import ....
                //some operation here , like display a alertDialog after the end of the payment.
               },
           ),
+![gallery - Copy](https://user-images.githubusercontent.com/44162391/154532487-6d2723f3-8b9b-4b12-a534-8923205f51c5.png)
+
+
+
+
+<img width="1920" alt="clients - Copy" src="https://user-images.githubusercontent.com/44162391/154532588-496e4fd0-8d2e-443d-bd53-94814ff1f229.png">
+
+
+
+
+
+
+
+
+
 
 ```
